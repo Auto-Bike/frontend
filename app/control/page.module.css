@@ -1,0 +1,78 @@
+.main {
+  padding: 1rem;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.container {
+  max-width: 800px;
+  width: 100%;
+}
+
+.controlSection {
+  background: rgba(95, 126, 151, 0.48);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.statusIndicator {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #dcdbdb;
+  border-radius: 4px;
+}
+
+.controls {
+  margin: 1rem 0;
+}
+
+.actionButton {
+  /* padding: 0.75rem 1.5rem; */
+  background: #1d7be7;
+  margin: 0.5rem;
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  width: 120px;
+  height: 45px;
+  /* display: flex; */
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.actionButton:hover:not(:disabled) {
+  background: #0051b3;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.speedControl {
+  /* padding: 0.5rem; */
+  padding: 0.5rem 0;
+}
+
+.settingItem label {
+  font-weight: 500;
+}
+
+.settingItem input {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
