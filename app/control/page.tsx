@@ -9,7 +9,7 @@ import styles from './page.module.css'
 export default function ControlPage() {
   const [status, setStatus] = useState('Disconnected')
   const [speed, setSpeed] = useState(50) // Speed control
-  const backendUrl = 'http://192.168.68.105:8000' // Change to your actual backend IP
+  const backendUrl = 'http://3.15.51.67' // Change to your actual backend IP
   const inactivityTimeout = 30 * 1000 // 30 seconds timeout
   let inactivityTimer: NodeJS.Timeout | null = null
 
