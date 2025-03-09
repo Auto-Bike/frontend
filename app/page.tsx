@@ -11,6 +11,12 @@ export default function Home() {
           <Link href="/control" className={styles.link}>
             Bike Control
           </Link>
+          <Link
+            href="/map"
+            style={{ backgroundColor: '#69b71e' }}
+            className={styles.link}>
+            Map
+          </Link>
         </nav>
       </Suspense>
     </main>
