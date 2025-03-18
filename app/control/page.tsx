@@ -3,31 +3,59 @@
 import { useEffect, useState } from 'react'
 import styles from './page.module.css'
 
-//To do
-// Turn Right, Turn Left logic control, probably need another angle control
-
 export default function ControlPage() {
   const [status, setStatus] = useState('Disconnected')
-  const [speed, setSpeed] = useState(50) // Speed control
-  const backendUrl = 'http://3.15.51.67' // Change to your actual backend IP
+  const [speed, setSpeed] = useState(30) // Speed control
+  const [direction, setDirection] = useState(30) // Direction control
+  const [isDebugMode, setIsDebugMode] = useState(false) // Debug mode state
+  // const backendUrl = 'http://3.15.51.67'; // Change to your actual backend IP
+  const backendUrl = 'http://localhost:8000'
   const inactivityTimeout = 30 * 1000 // 30 seconds timeout
-  let inactivityTimer: NodeJS.Timeout | null = null
+  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(
+    null
+  )
 
+  const DirectionPramas: number = 30.0
   // Function to reset the inactivity timer
   const resetInactivityTimer = () => {
-    if (inactivityTimer) clearTimeout(inactivityTimer)
-    inactivityTimer = setTimeout(() => {
+    if (status === 'Disconnected') return // Don't reset timer if already disconnected
+
+    // Clear existing timer if any
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer)
+    }
+
+    // Set new timer
+    const timer = setTimeout(() => {
       console.log('No actions detected for 30s. Disconnecting...')
       setStatus('Disconnected')
     }, inactivityTimeout)
+
+    setInactivityTimer(timer)
   }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer)
+      }
+    }
+  }, [inactivityTimer])
 
   // Function to send commands to the backend
   const sendCommand = async (command: string) => {
+    // Check if bike is connected first
+    if (status !== 'Connected') {
+      alert('Please connect to the bike first before sending commands.')
+      return
+    }
+
     try {
       setStatus('Sending...') // Show status while sending request
       resetInactivityTimer() // Reset inactivity timer
-
+      const time_duration = Number((direction / DirectionPramas).toFixed(2))
+      // console.log('time_duration:', time_duration)
       const response = await fetch(backendUrl + '/send-command', {
         method: 'POST',
         headers: {
@@ -37,6 +65,7 @@ export default function ControlPage() {
           // bike_id: 'bike1', // Ensure bike_id is included
           command: command,
           speed: speed,
+          time_duration: time_duration,
         }),
       })
 
@@ -48,6 +77,20 @@ export default function ControlPage() {
       const data = await response.json()
       console.log('Success:', data)
       setStatus('Connected') // Set status back after sending
+
+      // Show success message with command details
+      const commandDisplay = command.charAt(0).toUpperCase() + command.slice(1)
+      let message = `Command "${commandDisplay}" executed successfully!`
+
+      // Add relevant information based on command type
+      if (command === 'forward' || command === 'backward') {
+        message += `\nSpeed: ${speed}%`
+      } else if (command === 'left' || command === 'right') {
+        message += `\nAngle: ${direction}°`
+      }
+
+      alert(message)
+
       return data
     } catch (error) {
       console.error('Error sending request:', error)
@@ -79,6 +122,14 @@ export default function ControlPage() {
     }
   }
 
+  // Function to disconnect the bike
+  const disconnectBike = () => {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer)
+    }
+    setStatus('Disconnected')
+  }
+
   useEffect(() => {
     if (status === 'Connected') {
       resetInactivityTimer()
@@ -91,23 +142,39 @@ export default function ControlPage() {
         <h1>Bike Control Panel</h1>
 
         {/* Connect Button */}
-        <button onClick={connectBike}>Connect</button>
-
-        {/* System Status */}
         <div className={styles.controlSection}>
-          <h2>System Status</h2>
-          <div className={styles.statusIndicator}>Status: {status}</div>
+          <div className={styles.buttonGroup}>
+            <button onClick={connectBike}>Connect</button>
+            {isDebugMode && (
+              <button onClick={disconnectBike}>Disconnect</button>
+            )}
+          </div>
+          <div className={styles.statusIndicator}>System Status: {status}</div>
 
           {/* Speed Control */}
           <div className={styles.settingItem}>
-            <label>Speed Control: {speed}%</label>
+            <label>Speed Control: {speed}% (0-80)</label>
             <input
               className={styles.speedControl}
               type="range"
               min="0"
-              max="100"
+              max="80"
               value={speed}
               onChange={(e) => setSpeed(parseInt(e.target.value))}
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          {/* Direction Control */}
+          <div className={styles.settingItem}>
+            <label>Angle Control: {direction}° (0-60)</label>
+            <input
+              className={styles.speedControl}
+              type="range"
+              min="0"
+              max="60"
+              value={direction}
+              onChange={(e) => setDirection(parseInt(e.target.value))}
               style={{ width: '100%' }}
             />
           </div>
@@ -127,7 +194,7 @@ export default function ControlPage() {
               className={styles.actionButton}>
               Backward
             </button>
-            <br />
+            {/* <br /> */}
             <button
               onClick={() => sendCommand('right')}
               disabled={status === 'Sending...'}
