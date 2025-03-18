@@ -7,7 +7,8 @@ export default function ControlPage() {
   const [status, setStatus] = useState('Disconnected')
   const [speed, setSpeed] = useState(30) // Speed control
   const [direction, setDirection] = useState(30) // Direction control
-  const [isDebugMode, setIsDebugMode] = useState(false) // Debug mode state
+  const [isDebugMode, setIsDebugMode] = useState(true) // Debug mode useState
+  const [directionParams, setDirectionParams] = useState(30.0) // Direction parameters state
   const backendUrl = 'https://3.15.51.67' // Change to your actual backend IP
   // const backendUrl = 'http://localhost:8000'
   const inactivityTimeout = 30 * 1000 // 30 seconds timeout
@@ -15,7 +16,6 @@ export default function ControlPage() {
     null
   )
 
-  const DirectionPramas: number = 30.0
   // Function to reset the inactivity timer
   const resetInactivityTimer = () => {
     if (status === 'Disconnected') return // Don't reset timer if already disconnected
@@ -54,7 +54,7 @@ export default function ControlPage() {
     try {
       setStatus('Sending...') // Show status while sending request
       resetInactivityTimer() // Reset inactivity timer
-      const time_duration = Number((direction / DirectionPramas).toFixed(2))
+      const time_duration = Number((direction / directionParams).toFixed(2))
       // console.log('time_duration:', time_duration)
       const response = await fetch(backendUrl + '/send-command', {
         method: 'POST',
@@ -178,6 +178,29 @@ export default function ControlPage() {
               style={{ width: '100%' }}
             />
           </div>
+
+          {/* Direction Parameters Control */}
+          {isDebugMode && (
+            <div className={styles.settingItem}>
+              <label>Direction Parameters: {directionParams}</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={directionParams}
+                onChange={(e) =>
+                  setDirectionParams(Math.max(1, parseInt(e.target.value) || 1))
+                }
+                className={styles.numberInput}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                }}
+              />
+            </div>
+          )}
 
           {/* Control Buttons */}
           <div className={styles.controls}>
