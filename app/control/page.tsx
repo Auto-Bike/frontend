@@ -8,8 +8,8 @@ export default function ControlPage() {
   const [speed, setSpeed] = useState(30) // Speed control
   const [direction, setDirection] = useState(30) // Direction control
   const [isDebugMode, setIsDebugMode] = useState(false) // Debug mode state
-  // const backendUrl = 'http://3.15.51.67'; // Change to your actual backend IP
-  const backendUrl = 'http://localhost:8000'
+  const backendUrl = 'https://3.15.51.67' // Change to your actual backend IP
+  // const backendUrl = 'http://localhost:8000'
   const inactivityTimeout = 30 * 1000 // 30 seconds timeout
   const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(
     null
