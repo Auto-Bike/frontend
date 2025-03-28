@@ -94,6 +94,47 @@
   margin: 1.5rem 0;
 }
 
+.angleControlHeader {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.angleLabel {
+  font-weight: 500;
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 28px;
+  display: inline-block;
+}
+
+.centerButton {
+  background: #71787d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 28px;
+  line-height: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.centerButton:hover {
+  background: #5a6065;
+}
+
+.centerButton:disabled {
+  background: #a1a5a8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .settingItem label {
   display: block;
   font-weight: 500;

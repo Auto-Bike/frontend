@@ -7,7 +7,7 @@ export default function ControlPage() {
   const [status, setStatus] = useState('Disconnected')
   const [speed, setSpeed] = useState(30) // Speed control
   const [direction, setDirection] = useState(30) // Direction control
-  const [isDebugMode, setIsDebugMode] = useState(true) // Debug mode useState
+  const [isDebugMode, setIsDebugMode] = useState(false) // Debug mode useState
   const [directionParams, setDirectionParams] = useState(30.0) // Direction parameters state
   const backendUrl = 'https://3.15.51.67' // Change to your actual backend IP
   // const backendUrl = 'http://localhost:8000'
@@ -54,8 +54,6 @@ export default function ControlPage() {
     try {
       setStatus('Sending...') // Show status while sending request
       resetInactivityTimer() // Reset inactivity timer
-      const time_duration = Number((direction / directionParams).toFixed(2))
-      // console.log('time_duration:', time_duration)
       const response = await fetch(backendUrl + '/send-command', {
         method: 'POST',
         headers: {
@@ -65,7 +63,7 @@ export default function ControlPage() {
           // bike_id: 'bike1', // Ensure bike_id is included
           command: command,
           speed: speed,
-          time_duration: time_duration,
+          angle: direction,
         }),
       })
 
@@ -153,7 +151,9 @@ export default function ControlPage() {
 
           {/* Speed Control */}
           <div className={styles.settingItem}>
-            <label>Speed Control: {speed}% (0-80)</label>
+            <span className={styles.angleLabel}>
+              Speed Control: {speed}% (0-80)
+            </span>
             <input
               className={styles.speedControl}
               type="range"
@@ -167,7 +167,17 @@ export default function ControlPage() {
 
           {/* Direction Control */}
           <div className={styles.settingItem}>
-            <label>Angle Control: {direction}° (0-60)</label>
+            <div className={styles.angleControlHeader}>
+              <span className={styles.angleLabel}>
+                Angle Control: {direction}° (0-60)
+              </span>
+              <button
+                onClick={() => sendCommand('center')}
+                disabled={status === 'Sending...'}
+                className={styles.centerButton}>
+                Center
+              </button>
+            </div>
             <input
               className={styles.speedControl}
               type="range"
@@ -188,9 +198,7 @@ export default function ControlPage() {
                 min="1"
                 max="100"
                 value={directionParams}
-                onChange={(e) =>
-                  setDirectionParams(Math.max(1, parseInt(e.target.value) || 1))
-                }
+                onChange={(e) => setDirectionParams(parseFloat(e.target.value))}
                 className={styles.numberInput}
                 style={{
                   width: '100%',

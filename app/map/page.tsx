@@ -12,7 +12,7 @@ const LeafletMap = dynamic(() => import('./LeafletMap'), {
 })
 
 // API endpoint
-const LOCATION_API_ENDPOINT = 'http://localhost:8000/latest-gps/bike1'
+const LOCATION_API_ENDPOINT = 'https://3.15.51.67/latest-gps/bike1'
 
 export default function NavigationPage() {
   const [position, setPosition] = useState({ lat: 51.505, lng: -0.09 })

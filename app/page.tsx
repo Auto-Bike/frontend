@@ -17,6 +17,12 @@ export default function Home() {
             className={styles.link}>
             Map
           </Link>
+          <Link
+            href="/navigation"
+            style={{ backgroundColor: 'rgb(193 154 44)' }}
+            className={styles.link}>
+            Navigation
+          </Link>
         </nav>
       </Suspense>
     </main>
