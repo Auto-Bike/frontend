@@ -283,6 +283,48 @@ const NavigationPage: NextPage = () => {
     setMapCenter(currentLocation)
   }
 
+  // Add this new function after useCurrentLocationAsStart
+  const useCurrentLocationAsDestination = () => {
+    if (!isMapLoaded) return
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const browserLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          }
+
+          const geocoder = new window.google.maps.Geocoder()
+          geocoder.geocode(
+            { location: browserLocation },
+            (
+              results: google.maps.GeocoderResult[] | null,
+              status: google.maps.GeocoderStatus
+            ) => {
+              if (status === 'OK' && results && results[0]) {
+                const address = results[0].formatted_address
+                const input =
+                  document.querySelector<HTMLInputElement>('.destinationInput')
+                if (input) {
+                  input.value = address
+                }
+                setDestination(browserLocation)
+              } else {
+                setError('Could not find address for current location')
+              }
+            }
+          )
+        },
+        (error) => {
+          setError('Error getting your location: ' + error.message)
+        }
+      )
+    } else {
+      setError('Geolocation is not supported by your browser')
+    }
+  }
+
   // Autocomplete handlers
   const onOriginLoad = (autocomplete: google.maps.places.Autocomplete) =>
     setOriginSearchBox(autocomplete)
@@ -325,7 +367,7 @@ const NavigationPage: NextPage = () => {
   return (
     <div className={styles.navigationContainer}>
       <div className={styles.navigationHeader}>
-        <h1 className={styles.title}>Bike Navigation</h1>
+        <h1 className={styles.title}>Auto Bike Sharing Map</h1>
         {error && <p className={styles.error}>{error}</p>}
       </div>
       <div className={styles.navigationContent}>
@@ -346,10 +388,8 @@ const NavigationPage: NextPage = () => {
               onClick={useCurrentLocationAsStart}
               className={styles.useLocationButton}
               title="Use current GPS location">
-              <span className={styles.desktopOnly}>
-                📍 Use Current Location
-              </span>
-              <span className={styles.mobileOnly}>📍</span>
+              <span className={styles.desktopOnly}>🚲 Find Nearest Bike</span>
+              <span className={styles.mobileOnly}>🚲</span>
             </button>
           </div>
           <div className={styles.inputWithButton}>
@@ -364,6 +404,13 @@ const NavigationPage: NextPage = () => {
                 onChange={(e) => !e.target.value && setDestination(null)}
               />
             </Autocomplete>
+            <button
+              onClick={useCurrentLocationAsDestination}
+              className={styles.useLocationButton}
+              title="Use current browser location">
+              <span className={styles.desktopOnly}>📍 Locate me</span>
+              <span className={styles.mobileOnly}>📍</span>
+            </button>
             <button
               onClick={showRoute}
               className={styles.routeButton}

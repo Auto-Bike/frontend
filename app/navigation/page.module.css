@@ -364,7 +364,7 @@
     min-width: 100%;
   }
 
-  .useLocationButton {
+  .inputWithButton:first-child .useLocationButton {
     position: absolute;
     right: 8px;
     top: 47%;
@@ -377,7 +377,20 @@
     color: #3498db;
   }
 
-  .useLocationButton:hover {
+  .inputWithButton:nth-child(2) .useLocationButton {
+    position: absolute;
+    right: 8px;
+    top: 0;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    font-size: 1.2rem;
+    color: #3498db;
+  }
+
+  .inputWithButton:first-child .useLocationButton:hover,
+  .inputWithButton:nth-child(2) .useLocationButton:hover {
     background: transparent;
   }
 
