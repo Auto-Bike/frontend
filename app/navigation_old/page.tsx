@@ -11,7 +11,6 @@ import {
   DirectionsRenderer,
 } from '@react-google-maps/api'
 import styles from './page.module.css'
-import { log } from 'console'
 
 // Types
 interface GPSData {
@@ -26,8 +25,8 @@ interface LatLng {
 
 // Constants
 const DEFAULT_CENTER: LatLng = {
-  lat: 43.259206,
-  lng: -79.920806,
+  lat: 43.255585,
+  lng: -79.935473,
 }
 
 const CANADA_BOUNDS = {
@@ -80,14 +79,51 @@ const NavigationPage: NextPage = () => {
 
   // Fetch GPS location
   useEffect(() => {
-    // Set default bike location
-    const defaultBikeLocation = {
-      lat: 43.259206,
-      lng: -79.920806,
+    if (isFetchingStopped) return
+
+    const fetchGPSData = async () => {
+      try {
+        const response = await fetch('https://3.15.51.67/latest-gps/bike1')
+        if (!response.ok) {
+          throw new Error('Failed to fetch GPS data')
+        }
+        const data: GPSData = await response.json()
+        const newLocation = {
+          lat: data.latitude,
+          lng: data.longitude,
+        }
+        setCurrentLocation(newLocation)
+
+        // Only set map center on first successful fetch
+        setMapCenter((prevCenter) => {
+          if (prevCenter === DEFAULT_CENTER) {
+            return newLocation
+          }
+          return prevCenter
+        })
+
+        setError(null)
+        setFailureCount(0)
+      } catch (err) {
+        setFailureCount((prev) => {
+          const newCount = prev + 1
+          if (newCount >= 6) {
+            setIsFetchingStopped(true)
+            setError(
+              'GPS data fetch failed too many times. Please refresh the page to try again.'
+            )
+          } else {
+            setError('Error fetching GPS data')
+          }
+          return newCount
+        })
+        console.error('Error fetching GPS data:', err)
+      }
     }
-    setCurrentLocation(defaultBikeLocation)
-    setMapCenter(defaultBikeLocation)
-  }, []) // Empty dependency array means this runs once on mount
+
+    const intervalId = setInterval(fetchGPSData, 2000)
+    return () => clearInterval(intervalId)
+  }, [isFetchingStopped])
 
   // Map initialization
   const onMapLoad = (map: google.maps.Map) => {
@@ -168,67 +204,6 @@ const NavigationPage: NextPage = () => {
     }
   }
 
-  // Add this helper function to sleep
-  const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms))
-
-  // Add this simulation function
-  const simulateBikeMovement = async () => {
-    console.log('test')
-    console.log(currentLocation, isNavigating)
-
-    // Simulate movement for 100 steps (about 1.6 minutes)
-    for (let i = 0; i < 13 && isNavigating; i++) {
-      setCurrentLocation((prevLocation) => {
-        if (!prevLocation) return prevLocation
-        const newLocation = {
-          ...prevLocation,
-          lng: prevLocation.lng - 0.00005,
-        }
-        console.log('New bike location:', newLocation)
-        return newLocation
-      })
-
-      await sleep(1000)
-    }
-    for (let i = 0; i < 5 && isNavigating; i++) {
-      setCurrentLocation((prevLocation) => {
-        if (!prevLocation) return prevLocation
-        const newLocation = {
-          ...prevLocation,
-          lat: prevLocation.lat - 0.000035,
-        }
-        console.log('New bike location:', newLocation)
-        return newLocation
-      })
-
-      await sleep(1000)
-    }
-    alert('Navigation complete! Enjoy the ride!')
-    setIsNavigating(false)
-    setOrigin(null)
-    setDestination(null)
-    setDirections(null)
-    if (directionsRenderer) {
-      directionsRenderer.setMap(null)
-    }
-    setError(null)
-  }
-
-  // Modify the navigation button click handler
-  const startNavigation = () => {
-    // Removed async since we don't need it
-    setIsNavigating(true)
-    // Use useEffect to watch for isNavigating changes
-  }
-
-  // Add this useEffect to start simulation when isNavigating changes
-  useEffect(() => {
-    if (isNavigating) {
-      simulateBikeMovement()
-    }
-  }, [isNavigating])
-
   // Navigation functions
   const showRoute = () => {
     if (!origin || !destination) {
@@ -274,18 +249,14 @@ const NavigationPage: NextPage = () => {
 
   const useCurrentLocationAsStart = () => {
     if (!isMapLoaded) return
-
-    const defaultLocation = {
-      lat: 43.259206,
-      lng: -79.920806,
+    if (!currentLocation) {
+      setError('GPS location is not available')
+      return
     }
-
-    // Update both current location and origin
-    setCurrentLocation(defaultLocation)
 
     const geocoder = new window.google.maps.Geocoder()
     geocoder.geocode(
-      { location: defaultLocation },
+      { location: currentLocation },
       (
         results: google.maps.GeocoderResult[] | null,
         status: google.maps.GeocoderStatus
@@ -305,12 +276,11 @@ const NavigationPage: NextPage = () => {
   }
 
   const centerOnCurrentLocation = () => {
-    const defaultLocation = {
-      lat: 43.259206,
-      lng: -79.920806,
+    if (!currentLocation) {
+      setError('GPS location is not available')
+      return
     }
-    setCurrentLocation(defaultLocation)
-    setMapCenter(defaultLocation)
+    setMapCenter(currentLocation)
   }
 
   // Add this new function after useCurrentLocationAsStart
@@ -460,7 +430,12 @@ const NavigationPage: NextPage = () => {
               Directions
             </button>
             <button
-              onClick={startNavigation}
+              onClick={async () => {
+                const success = await sendNavigation()
+                if (success) {
+                  setIsNavigating(true)
+                }
+              }}
               className={`${styles.navigateButton} ${
                 isNavigating ? styles.navigating : ''
               }`}
